@@ -23,6 +23,7 @@ import {
   BellRing,
   UserPlus,
   DollarSign,
+  ChevronDown,
 } from 'lucide-react';
 import { useRef, useCallback } from 'react';
 import { useOrden } from '../hooks/useOrden';
@@ -32,9 +33,9 @@ import { listUsers } from '../services/users';
 import type { AppUser } from '../types';
 import { exportToExcel } from '../services/exportExcel';
 // Lazy-load react-pdf only when user actually exports — it's 1.5MB
-const exportToPdf = async (orden: import('../types').Orden) => {
+const exportToPdf = async (orden: import('../types').Orden, lang: import('../services/exportPdf').PdfLang) => {
   const { exportToPdf: fn } = await import('../services/exportPdf');
-  return fn(orden);
+  return fn(orden, lang);
 };
 import HeroImage from '../components/HeroImage';
 import CollapseSection from '../components/CollapseSection';
@@ -141,6 +142,7 @@ const DetalleOrden: React.FC = () => {
   const [cancelling, setCancelling] = useState(false);
   const [deleting] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfMenuOpen, setPdfMenuOpen] = useState(false);
   const [uploadingImg, setUploadingImg] = useState(false);
   const [togglingPagado, setTogglingPagado] = useState(false);
   const [asignarMode, setAsignarMode] = useState<'confirm' | 'edit' | null>(null);
@@ -269,11 +271,12 @@ const DetalleOrden: React.FC = () => {
     }
   }
 
-  async function handleExportPdf() {
+  async function handleExportPdf(lang: import('../services/exportPdf').PdfLang) {
     if (!orden) return;
+    setPdfMenuOpen(false);
     setPdfLoading(true);
     try {
-      await exportToPdf(orden);
+      await exportToPdf(orden, lang);
     } finally {
       setPdfLoading(false);
     }
@@ -623,14 +626,39 @@ const DetalleOrden: React.FC = () => {
       <div className={styles.actions}>
         {puedeVerPrecios && (
           <div className={styles.actionsSecondary}>
-            <button
-              className={`${styles.btn} ${styles.btnSecondary}`}
-              onClick={handleExportPdf}
-              disabled={pdfLoading}
-            >
-              <FileText size={16} />
-              {pdfLoading ? 'Generando...' : 'PDF'}
-            </button>
+            <div className={styles.pdfDropdown}>
+              <button
+                className={`${styles.btn} ${styles.btnSecondary}`}
+                onClick={() => setPdfMenuOpen((o) => !o)}
+                disabled={pdfLoading}
+              >
+                <FileText size={16} />
+                {pdfLoading ? 'Generando...' : 'PDF'}
+                {!pdfLoading && <ChevronDown size={16} />}
+              </button>
+              {pdfMenuOpen && (
+                <>
+                  <div
+                    className={styles.pdfMenuBackdrop}
+                    onClick={() => setPdfMenuOpen(false)}
+                  />
+                  <div className={styles.pdfMenu}>
+                    <button
+                      className={styles.pdfMenuItem}
+                      onClick={() => handleExportPdf('en')}
+                    >
+                      English
+                    </button>
+                    <button
+                      className={styles.pdfMenuItem}
+                      onClick={() => handleExportPdf('es')}
+                    >
+                      Español
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
             <button
               className={`${styles.btn} ${styles.btnSecondary}`}
               onClick={handleExportExcel}

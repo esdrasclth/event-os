@@ -176,24 +176,98 @@ const ESTADO_COLORS: Record<string, string> = {
   cancelado:  '#EF4444',
 };
 
-function formatDate(dateStr: string): string {
+export type PdfLang = 'es' | 'en';
+
+const I18N = {
+  es: {
+    companySubtitle: 'Alquiler de Mobiliario para Eventos',
+    quoteLabel: 'COTIZACIÓN / ORDEN',
+    clientSection: 'Datos del Cliente',
+    client: 'Cliente:',
+    phone: 'Teléfono:',
+    address: 'Dirección:',
+    starts: 'Empieza:',
+    ends: 'Termina:',
+    productsSection: 'Detalle de Productos',
+    colProducto: 'Producto',
+    colCantidad: 'Cant.',
+    colPrecio: 'Precio Unit.',
+    colSubtotal: 'Subtotal',
+    total: 'TOTAL GENERAL:',
+    commentsSection: 'Comentarios y Notas',
+    paid: 'PAGADO',
+    footerCompany: "Pancho's Rentals — Alquiler de Mobiliario para Eventos",
+    generatedOn: 'Generado el',
+    estados: {
+      pendiente: 'PENDIENTE',
+      confirmado: 'CONFIRMADO',
+      entregado: 'ENTREGADO',
+      retirado: 'RETIRADO',
+      cancelado: 'CANCELADO',
+    } as Record<string, string>,
+    months: [
+      'enero','febrero','marzo','abril','mayo','junio',
+      'julio','agosto','septiembre','octubre','noviembre','diciembre',
+    ],
+    currencyLocale: 'es-HN',
+    dateLocale: 'es-HN',
+  },
+  en: {
+    companySubtitle: 'Event Furniture Rental',
+    quoteLabel: 'QUOTE / ORDER',
+    clientSection: 'Client Information',
+    client: 'Client:',
+    phone: 'Phone:',
+    address: 'Address:',
+    starts: 'Starts:',
+    ends: 'Ends:',
+    productsSection: 'Product Details',
+    colProducto: 'Product',
+    colCantidad: 'Qty',
+    colPrecio: 'Unit Price',
+    colSubtotal: 'Subtotal',
+    total: 'GRAND TOTAL:',
+    commentsSection: 'Comments & Notes',
+    paid: 'PAID',
+    footerCompany: "Pancho's Rentals — Event Furniture Rental",
+    generatedOn: 'Generated on',
+    estados: {
+      pendiente: 'PENDING',
+      confirmado: 'CONFIRMED',
+      entregado: 'DELIVERED',
+      retirado: 'PICKED UP',
+      cancelado: 'CANCELLED',
+    } as Record<string, string>,
+    months: [
+      'January','February','March','April','May','June',
+      'July','August','September','October','November','December',
+    ],
+    currencyLocale: 'en-US',
+    dateLocale: 'en-US',
+  },
+} as const;
+
+function formatDate(dateStr: string, lang: PdfLang): string {
   const [y, m, d] = dateStr.split('-');
-  const months = [
-    'enero','febrero','marzo','abril','mayo','junio',
-    'julio','agosto','septiembre','octubre','noviembre','diciembre',
-  ];
-  return `${parseInt(d)} de ${months[parseInt(m) - 1]} de ${y}`;
+  const t = I18N[lang];
+  const month = t.months[parseInt(m) - 1];
+  return lang === 'en'
+    ? `${month} ${parseInt(d)}, ${y}`
+    : `${parseInt(d)} de ${month} de ${y}`;
 }
 
-function formatCurrency(amount: number): string {
-  return `$ ${amount.toLocaleString('es-HN', { minimumFractionDigits: 2 })}`;
+function formatCurrency(amount: number, lang: PdfLang): string {
+  return `$ ${amount.toLocaleString(I18N[lang].currencyLocale, { minimumFractionDigits: 2 })}`;
 }
 
 interface OrdenDocumentProps {
   orden: Orden;
+  lang: PdfLang;
 }
 
-const OrdenDocument: React.FC<OrdenDocumentProps> = ({ orden }) => (
+const OrdenDocument: React.FC<OrdenDocumentProps> = ({ orden, lang }) => {
+  const t = I18N[lang];
+  return (
   <Document>
     <Page size="A4" style={styles.page}>
       {/* Header */}
@@ -202,23 +276,23 @@ const OrdenDocument: React.FC<OrdenDocumentProps> = ({ orden }) => (
           <Image src="/logo.png" style={styles.headerLogo} />
           <View style={styles.headerInfo}>
             <Text style={styles.companyName}>Pancho's Rentals</Text>
-            <Text style={styles.companySubtitle}>Alquiler de Mobiliario para Eventos</Text>
+            <Text style={styles.companySubtitle}>{t.companySubtitle}</Text>
             <Text style={styles.companySubtitle}>627 King St, Wenatchee, WA 98801</Text>
             <Text style={styles.companySubtitle}>+1 (509) 415-8523 · +1 (469) 977-5522</Text>
             <Text style={styles.companySubtitle}>panchosrentals@hotmail.com</Text>
           </View>
         </View>
         <View style={styles.headerRight}>
-          <Text style={styles.ordenLabel}>COTIZACIÓN / ORDEN</Text>
+          <Text style={styles.ordenLabel}>{t.quoteLabel}</Text>
           <Text style={styles.ordenId}>#{orden.id.slice(-6).toUpperCase()}</Text>
-          <Text style={[styles.ordenLabel, { marginTop: 4 }]}>{formatDate(orden.fecha)}</Text>
+          <Text style={[styles.ordenLabel, { marginTop: 4 }]}>{formatDate(orden.fecha, lang)}</Text>
           <Text
             style={[
               styles.estadoBadge,
               { color: ESTADO_COLORS[orden.estado] ?? '#111', marginTop: 6 },
             ]}
           >
-            {orden.estado.toUpperCase()}
+            {t.estados[orden.estado] ?? orden.estado.toUpperCase()}
           </Text>
           {orden.pagado && (
             <Text
@@ -227,7 +301,7 @@ const OrdenDocument: React.FC<OrdenDocumentProps> = ({ orden }) => (
                 { color: '#22C55E', marginTop: 4 },
               ]}
             >
-              PAGADO
+              {t.paid}
             </Text>
           )}
         </View>
@@ -235,76 +309,77 @@ const OrdenDocument: React.FC<OrdenDocumentProps> = ({ orden }) => (
 
       {/* Client info */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Datos del Cliente</Text>
+        <Text style={styles.sectionTitle}>{t.clientSection}</Text>
         <View style={styles.row}>
-          <Text style={styles.label}>Cliente:</Text>
+          <Text style={styles.label}>{t.client}</Text>
           <Text style={styles.value}>{orden.nombre}</Text>
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>Teléfono:</Text>
+          <Text style={styles.label}>{t.phone}</Text>
           <Text style={styles.value}>{orden.telefono}</Text>
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>Dirección:</Text>
+          <Text style={styles.label}>{t.address}</Text>
           <Text style={styles.value}>{orden.direccion}</Text>
         </View>
         <View style={styles.row}>
-          <Text style={styles.label}>Empieza:</Text>
-          <Text style={styles.value}>{formatDate(orden.fecha)}{orden.horaInicio ? ` · ${orden.horaInicio}` : ''}</Text>
+          <Text style={styles.label}>{t.starts}</Text>
+          <Text style={styles.value}>{formatDate(orden.fecha, lang)}{orden.horaInicio ? ` · ${orden.horaInicio}` : ''}</Text>
         </View>
         {(orden.fechaFin || orden.fechaRetiro) ? (
           <View style={styles.row}>
-            <Text style={styles.label}>Termina:</Text>
-            <Text style={styles.value}>{formatDate(orden.fechaFin ?? orden.fechaRetiro!)}{orden.horaFin ? ` · ${orden.horaFin}` : ''}</Text>
+            <Text style={styles.label}>{t.ends}</Text>
+            <Text style={styles.value}>{formatDate(orden.fechaFin ?? orden.fechaRetiro!, lang)}{orden.horaFin ? ` · ${orden.horaFin}` : ''}</Text>
           </View>
         ) : null}
       </View>
 
       {/* Products table */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Detalle de Productos</Text>
+        <Text style={styles.sectionTitle}>{t.productsSection}</Text>
         <View style={styles.tableHeader}>
-          <Text style={[styles.tableHeaderText, styles.colProducto]}>Producto</Text>
-          <Text style={[styles.tableHeaderText, styles.colCantidad]}>Cant.</Text>
-          <Text style={[styles.tableHeaderText, styles.colPrecio]}>Precio Unit.</Text>
-          <Text style={[styles.tableHeaderText, styles.colSubtotal]}>Subtotal</Text>
+          <Text style={[styles.tableHeaderText, styles.colProducto]}>{t.colProducto}</Text>
+          <Text style={[styles.tableHeaderText, styles.colCantidad]}>{t.colCantidad}</Text>
+          <Text style={[styles.tableHeaderText, styles.colPrecio]}>{t.colPrecio}</Text>
+          <Text style={[styles.tableHeaderText, styles.colSubtotal]}>{t.colSubtotal}</Text>
         </View>
         {orden.items.map((item, i) => (
           <View key={i} style={[styles.tableRow, i % 2 === 1 ? styles.tableRowAlt : {}]}>
             <Text style={[styles.tableText, styles.colProducto]}>{item.producto}</Text>
             <Text style={[styles.tableText, styles.colCantidad]}>{item.cantidad}</Text>
-            <Text style={[styles.tableText, styles.colPrecio]}>{formatCurrency(item.precio)}</Text>
+            <Text style={[styles.tableText, styles.colPrecio]}>{formatCurrency(item.precio, lang)}</Text>
             <Text style={[styles.tableText, styles.colSubtotal]}>
-              {formatCurrency(item.cantidad * item.precio)}
+              {formatCurrency(item.cantidad * item.precio, lang)}
             </Text>
           </View>
         ))}
         <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>TOTAL GENERAL:</Text>
-          <Text style={styles.totalValue}>{formatCurrency(orden.total)}</Text>
+          <Text style={styles.totalLabel}>{t.total}</Text>
+          <Text style={styles.totalValue}>{formatCurrency(orden.total, lang)}</Text>
         </View>
       </View>
 
       {/* Comments */}
       {orden.comentarios ? (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Comentarios y Notas</Text>
+          <Text style={styles.sectionTitle}>{t.commentsSection}</Text>
           <Text style={styles.comentariosText}>{orden.comentarios}</Text>
         </View>
       ) : null}
 
       {/* Footer */}
       <View style={styles.footer} fixed>
-        <Text style={styles.footerText}>Pancho's Rentals — Alquiler de Mobiliario para Eventos</Text>
-        <Text style={styles.footerText}>Generado el {new Date().toLocaleDateString('es-HN')}</Text>
+        <Text style={styles.footerText}>{t.footerCompany}</Text>
+        <Text style={styles.footerText}>{t.generatedOn} {new Date().toLocaleDateString(t.dateLocale)}</Text>
       </View>
     </Page>
   </Document>
-);
+  );
+};
 
-export async function exportToPdf(orden: Orden): Promise<void> {
-  const blob = await pdf(<OrdenDocument orden={orden} />).toBlob();
-  const filename = `orden-${orden.nombre.replace(/\s+/g, '-').toLowerCase()}.pdf`;
+export async function exportToPdf(orden: Orden, lang: PdfLang = 'en'): Promise<void> {
+  const blob = await pdf(<OrdenDocument orden={orden} lang={lang} />).toBlob();
+  const filename = `orden-${orden.nombre.replace(/\s+/g, '-').toLowerCase()}-${lang}.pdf`;
 
   // Prefer Web Share API (native share sheet): keeps the PWA foregrounded on
   // iOS. Blob-URL navigation suspends the WebView and breaks new Firestore
