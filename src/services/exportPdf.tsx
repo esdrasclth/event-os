@@ -196,7 +196,7 @@ const I18N = {
     total: 'TOTAL GENERAL:',
     commentsSection: 'Comentarios y Notas',
     paid: 'PAGADO',
-    footerCompany: "Pancho's Rentals — Alquiler de Mobiliario para Eventos",
+    footerCompany: "AC&AC — Alquiler de Mobiliario para Eventos",
     generatedOn: 'Generado el',
     estados: {
       pendiente: 'PENDIENTE',
@@ -229,7 +229,7 @@ const I18N = {
     total: 'GRAND TOTAL:',
     commentsSection: 'Comments & Notes',
     paid: 'PAID',
-    footerCompany: "Pancho's Rentals — Event Furniture Rental",
+    footerCompany: "AC&AC — Event Furniture Rental",
     generatedOn: 'Generated on',
     estados: {
       pendiente: 'PENDING',
@@ -275,7 +275,7 @@ const OrdenDocument: React.FC<OrdenDocumentProps> = ({ orden, lang }) => {
         <View style={styles.headerLeft}>
           <Image src="/logo.png" style={styles.headerLogo} />
           <View style={styles.headerInfo}>
-            <Text style={styles.companyName}>Pancho's Rentals</Text>
+            <Text style={styles.companyName}>AC&AC</Text>
             <Text style={styles.companySubtitle}>{t.companySubtitle}</Text>
             <Text style={styles.companySubtitle}>627 King St, Wenatchee, WA 98801</Text>
             <Text style={styles.companySubtitle}>+1 (509) 415-8523 · +1 (469) 977-5522</Text>

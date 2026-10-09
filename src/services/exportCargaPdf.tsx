@@ -208,7 +208,7 @@ const CargaDocument: React.FC<CargaDocumentProps> = ({ fecha, ordenes, aggregate
           <View style={styles.headerLeft}>
             <Image src="/logo.png" style={styles.headerLogo} />
             <View style={styles.headerInfo}>
-              <Text style={styles.companyName}>Pancho's Rentals</Text>
+               <Text style={styles.companyName}>AC&AC</Text>
               <Text style={styles.companySubtitle}>Alquiler de Mobiliario para Eventos</Text>
               <Text style={styles.companySubtitle}>627 King St, Wenatchee, WA 98801</Text>
               <Text style={styles.companySubtitle}>+1 (509) 415-8523 · +1 (469) 977-5522</Text>
@@ -289,7 +289,7 @@ const CargaDocument: React.FC<CargaDocumentProps> = ({ fecha, ordenes, aggregate
         </View>
 
         <View style={styles.footer} fixed>
-          <Text style={styles.footerText}>Pancho's Rentals — Carga del día</Text>
+           <Text style={styles.footerText}>AC&AC — Carga del día</Text>
           <Text style={styles.footerText}>
             Generado el {new Date().toLocaleDateString('es-HN')}
           </Text>
